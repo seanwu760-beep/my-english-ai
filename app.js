@@ -641,49 +641,12 @@ window.playVoice = function(btn, text) {
     // Stop any ongoing speech
     window.speechSynthesis.cancel();
     
-    // For Thai, use Google Translate TTS as a robust fallback since many OS lack Thai voice packs natively.
-    if (targetLanguage === 'th') {
-        const chars = Array.from(text);
-        const chunks = [];
-        let current = "";
-        for (let char of chars) {
-            if (current.length >= 150 && (char === ' ' || char === '.' || char === '!' || char === '?' || char === '。' || char === '，' || char === ',')) {
-                current += char;
-                chunks.push(current);
-                current = "";
-            } else if (current.length >= 180) {
-                chunks.push(current);
-                current = char;
-            } else {
-                current += char;
-            }
-        }
-        if (current) chunks.push(current);
-        
-        let i = 0;
-        function playNextChunk() {
-            if (i >= chunks.length) return;
-            const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunks[i])}&tl=th&client=gtx`;
-            dom.audioPlayer.src = url;
-            dom.audioPlayer.onended = () => {
-                i++;
-                playNextChunk();
-            };
-            dom.audioPlayer.play().catch(e => {
-                 console.log("Audio API failed on chunk:", e);
-                 // alert(`手機播放限制或失敗（錯誤碼: ${e.message}）。嘗試降級處理。`);
-                 if (i === 0) playLocalTTS(text); // Only fallback if first chunk fails
-            });
-        }
-        
-        playNextChunk();
-        return;
-    }
-    
     playLocalTTS(text);
 }
 
 function playLocalTTS(text) {
+    // If target language is Thai and we don't have voices, it will throw a warning.
+    // Native TTS relies entirely on OS installed voices.
     const utterance = new SpeechSynthesisUtterance(text);
     
     let currentVoices = window.speechSynthesis.getVoices();
@@ -725,24 +688,22 @@ function setupSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
         speechRecognition = new SpeechRecognition();
-        speechRecognition.continuous = true;
-        speechRecognition.interimResults = true;
+        speechRecognition.continuous = false; // Turning off continuous to prevent Android multi-fire overlapping
+        speechRecognition.interimResults = false; // Turning off interim to prevent stuttering repeats
         speechRecognition.lang = targetLanguage === 'th' ? 'th-TH' : 'en-US';
         
         speechRecognition.onstart = () => {
             isRecording = true;
             dom.micBtn.classList.add('listening');
+            dom.messageInput.placeholder = "Listening...";
         };
         
         speechRecognition.onresult = (event) => {
-            let interimTranscript = '';
             let finalTranscript = '';
             
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
                     finalTranscript += event.results[i][0].transcript;
-                } else {
-                    interimTranscript += event.results[i][0].transcript;
                 }
             }
             
@@ -766,6 +727,7 @@ function setupSpeechRecognition() {
         speechRecognition.onend = () => {
             isRecording = false;
             dom.micBtn.classList.remove('listening');
+            updateLangUI(); // reset placeholder
         };
     } else {
         console.warn('Speech Recognition API not supported in this browser.');
