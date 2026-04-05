@@ -67,6 +67,12 @@ function updateLangUI() {
     }
 }
 
+// Global Audio Element
+dom.audioPlayer = document.createElement('audio');
+dom.audioPlayer.id = 'tts-audio-player';
+dom.audioPlayer.playsInline = true;
+document.body.appendChild(dom.audioPlayer);
+
 // --- Initialization ---
 function init() {
     updateLangUI();
@@ -92,6 +98,15 @@ function init() {
 
 // --- Event Listeners ---
 function setupEventListeners() {
+    // Unlock Web Audio for mobile on first user interaction
+    document.body.addEventListener('click', function unlockAudio() {
+        if (dom.audioPlayer) {
+            dom.audioPlayer.play().catch(() => {});
+            dom.audioPlayer.pause();
+        }
+        document.body.removeEventListener('click', unlockAudio);
+    }, { once: true });
+
     // Sidebar toggle (Mobile)
     dom.mobileMenuBtn.addEventListener('click', () => dom.sidebar.classList.add('open'));
     dom.closeSidebarBtn.addEventListener('click', () => dom.sidebar.classList.remove('open'));
@@ -649,14 +664,14 @@ window.playVoice = function(btn, text) {
         function playNextChunk() {
             if (i >= chunks.length) return;
             const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunks[i])}&tl=th&client=gtx`;
-            const audio = new Audio(url);
-            audio.onended = () => {
+            dom.audioPlayer.src = url;
+            dom.audioPlayer.onended = () => {
                 i++;
                 playNextChunk();
             };
-            audio.play().catch(e => {
+            dom.audioPlayer.play().catch(e => {
                  console.log("Audio API failed on chunk:", e);
-                 alert(`手機播放限制或失敗（錯誤碼: ${e.message}）。正在切換回內建引擎...`);
+                 // alert(`手機播放限制或失敗（錯誤碼: ${e.message}）。嘗試降級處理。`);
                  if (i === 0) playLocalTTS(text); // Only fallback if first chunk fails
             });
         }
