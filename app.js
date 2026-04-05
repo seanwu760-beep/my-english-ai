@@ -648,14 +648,15 @@ window.playVoice = function(btn, text) {
         let i = 0;
         function playNextChunk() {
             if (i >= chunks.length) return;
-            const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunks[i])}&tl=th&client=tw-ob`;
+            const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunks[i])}&tl=th&client=gtx`;
             const audio = new Audio(url);
             audio.onended = () => {
                 i++;
                 playNextChunk();
             };
             audio.play().catch(e => {
-                 console.log("Audio API failed on chunk, falling back to local TTS:", e);
+                 console.log("Audio API failed on chunk:", e);
+                 alert(`手機播放限制或失敗（錯誤碼: ${e.message}）。正在切換回內建引擎...`);
                  if (i === 0) playLocalTTS(text); // Only fallback if first chunk fails
             });
         }
