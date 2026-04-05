@@ -628,12 +628,39 @@ window.playVoice = function(btn, text) {
     
     // For Thai, use Google Translate TTS as a robust fallback since many OS lack Thai voice packs natively.
     if (targetLanguage === 'th') {
-        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=th&client=tw-ob`;
-        const audio = new Audio(url);
-        audio.play().catch(e => {
-             console.log("Audio API failed, falling back to local TTS:", e);
-             playLocalTTS(text);
-        });
+        const chars = Array.from(text);
+        const chunks = [];
+        let current = "";
+        for (let char of chars) {
+            if (current.length >= 150 && (char === ' ' || char === '.' || char === '!' || char === '?' || char === '。' || char === '，' || char === ',')) {
+                current += char;
+                chunks.push(current);
+                current = "";
+            } else if (current.length >= 180) {
+                chunks.push(current);
+                current = char;
+            } else {
+                current += char;
+            }
+        }
+        if (current) chunks.push(current);
+        
+        let i = 0;
+        function playNextChunk() {
+            if (i >= chunks.length) return;
+            const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunks[i])}&tl=th&client=tw-ob`;
+            const audio = new Audio(url);
+            audio.onended = () => {
+                i++;
+                playNextChunk();
+            };
+            audio.play().catch(e => {
+                 console.log("Audio API failed on chunk, falling back to local TTS:", e);
+                 if (i === 0) playLocalTTS(text); // Only fallback if first chunk fails
+            });
+        }
+        
+        playNextChunk();
         return;
     }
     
