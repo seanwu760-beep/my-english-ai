@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fluency - Speaking Coach</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <button id="mobile-menu-btn" class="icon-button mobile-only">
+                    <i data-lucide="menu"></i>
+                </button>
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i data-lucide="sparkles"></i>
+                    </div>
+                    <h1>Fluency</h1>
+                </div>
+            </div>
+            <div class="header-right">
+                <button id="lang-toggle-btn" class="primary-button" style="padding: 6px 12px; font-size: 0.85rem; background: var(--bg-surface-hover); color: var(--text-primary); box-shadow: none; border: 1px solid var(--border-color); display: flex; gap: 6px; align-items: center;">
+                    <span id="lang-flag">🇺🇸</span> <span id="lang-text">EN</span>
+                </button>
+                <button id="profile-btn" class="icon-button" title="Edit Profile">
+                    <i data-lucide="user"></i>
+                </button>
+                <button id="settings-btn" class="icon-button" title="Settings">
+                    <i data-lucide="settings"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Sidebar (Scenarios) -->
+            <aside id="sidebar" class="sidebar">
+                <div class="sidebar-header">
+                    <h2>Scenarios</h2>
+                    <button id="close-sidebar-btn" class="icon-button mobile-only">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="scenarios-list" id="scenarios-list">
+                    <!-- Javascript will inject scenarios here -->
+                </div>
+            </aside>
+
+            <!-- Chat Area -->
+            <main class="chat-area">
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Messages will be injected here -->
+                    <div class="welcome-container">
+                        <div class="welcome-icon">
+                            <i data-lucide="message-circle"></i>
+                        </div>
+                        <h2>Welcome to Fluency</h2>
+                        <p>I'm Emma, your English speaking coach. Choose a scenario on the left or type below to start!</p>
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <div class="input-wrapper">
+                        <textarea id="message-input" placeholder="Say something in English..." rows="1"></textarea>
+                        
+                        <button id="mic-btn" class="icon-button mic-button" title="Hold to speak or click to toggle">
+                            <i data-lucide="mic"></i>
+                        </button>
+                        
+                        <button id="send-btn" class="send-button" disabled>
+                            <i data-lucide="send"></i>
+                        </button>
+                    </div>
+                    <div class="input-footer">AI-generated content. May contain errors.</div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button id="close-settings-btn" class="icon-button">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="api-key-input">Gemini API Key</label>
+                    <input type="password" id="api-key-input" placeholder="AIzaSy...">
+                    <p class="help-text">Your API key is stored locally in your browser.</p>
+                </div>
+                <div class="form-group" style="margin-top: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                         <label for="model-select">Model</label>
+                         <button id="load-models-btn" style="font-size: 0.8rem; color: var(--accent-solid); text-decoration: underline;">Load Models</button>
+                    </div>
+                    <select id="model-select" class="custom-select">
+                        <option value="gemini-1.5-flash-latest">gemini-1.5-flash-latest</option>
+                        <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+                        <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+                        <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-settings-btn" class="primary-button">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding Modal -->
+    <div id="onboarding-modal" class="modal-overlay">
+        <div class="modal onboarding-modal">
+            <div class="modal-header">
+                <h2 id="onboarding-title">Welcome to Fluency ✦</h2>
+                <button id="close-onboarding-btn" class="icon-button" style="display: none;">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.95rem;">Let's customize your AI Coach to fit your unique needs.</p>
+                
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label for="ob-profession">職業 Profession</label>
+                    <input type="text" id="ob-profession" placeholder="e.g. 軟體工程師, Product Manager, 學生...">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label for="ob-level">英語程度 English Level</label>
+                    <select id="ob-level" class="custom-select">
+                        <option value="Beginner">初學者 (Beginner)</option>
+                        <option value="Intermediate" selected>中級 (Intermediate)</option>
+                        <option value="Advanced">進階 (Advanced)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label for="ob-scenario">主要練習場景 Primary Scenario</label>
+                    <select id="ob-scenario" class="custom-select">
+                        <option value="Daily Office">日常辦公 (Daily Office)</option>
+                        <option value="Business Meeting">商務會議 (Business Meeting)</option>
+                        <option value="Travel">出國旅行 (Travel)</option>
+                        <option value="Exam Prep">考試備考 (Exam Prep)</option>
+                        <option value="Daily Life">日常生活 (Daily Life)</option>
+                        <option value="Outdoor Sports">戶外運動 (Outdoor Sports)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label for="ob-frequency">練習頻率 Practice Frequency</label>
+                    <select id="ob-frequency" class="custom-select">
+                        <option value="每天練習 (Daily)">每天練習 (Daily)</option>
+                        <option value="每週練習 (Weekly)">每週練習 (Weekly)</option>
+                        <option value="隨機練習 (Randomly)">隨機練習 (Randomly)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label for="ob-goal">練習目標 Goals</label>
+                    <select id="ob-goal" class="custom-select">
+                        <option value="流利溝通 (Fluent Communication)">流利溝通 (Fluent Communication)</option>
+                        <option value="糾正發音與文法 (Correct Pronunciation & Grammar)">糾正發音與文法 (Correct Pronunciation & Grammar)</option>
+                    </select>
+                </div>
+                
+                <!-- We also ask for API key here so they don't have to open settings later -->
+                <div class="form-group" style="margin-bottom: 16px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                    <label for="ob-api-key" style="color: var(--accent-solid);">Google Gemini API Key</label>
+                    <input type="password" id="ob-api-key" placeholder="AIzaSy...">
+                    <p class="help-text">Required to start talking with Emma. Stored locally.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="finish-onboarding-btn" class="primary-button" style="width: 100%;">Start Journey 🚀</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
